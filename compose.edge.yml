@@ -38,4 +38,5 @@ volumes:
 
 networks:
   proxy:
+    external: true
     name: company_proxy
