@@ -1,0 +1,41 @@
+services:
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - .env
+    volumes:
+      - ./config/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - proxy
+
+  coturn:
+    image: coturn/coturn:4.6.3
+    restart: unless-stopped
+    env_file:
+      - .env
+    entrypoint:
+      - /bin/sh
+      - /opt/coturn/start.sh
+    ports:
+      - "${TURN_LISTEN_PORT:-3478}:${TURN_LISTEN_PORT:-3478}/tcp"
+      - "${TURN_LISTEN_PORT:-3478}:${TURN_LISTEN_PORT:-3478}/udp"
+      - "${TURN_TLS_LISTEN_PORT:-5349}:${TURN_TLS_LISTEN_PORT:-5349}/tcp"
+      - "${TURN_MIN_PORT:-49160}-${TURN_MAX_PORT:-49200}:${TURN_MIN_PORT:-49160}-${TURN_MAX_PORT:-49200}/udp"
+    volumes:
+      - ./config/coturn/start.sh:/opt/coturn/start.sh:ro
+    networks:
+      - proxy
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  proxy:
+    name: company_proxy
